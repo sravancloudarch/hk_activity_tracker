@@ -1,9 +1,9 @@
-from uuid import uuid4
 import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, timedelta, date
+from uuid import uuid4
 
 # ---- Google Sheets API Setup ----
 def get_gsheet_client():
@@ -37,11 +37,6 @@ def write_df(sheet_url, df, sheet_name="Sheet1"):
         ws.update([df.columns.values.tolist()] + df.values.tolist())
 
 def ensure_id(df):
-    """
-    Ensures every row in df has a non-empty, non-null unique ID in the 'ID' column.
-    - If 'ID' column is missing, adds one with all new UUIDs.
-    - If 'ID' exists, fills in blanks/missing values with a UUID.
-    """
     if "ID" not in df.columns:
         df["ID"] = [str(uuid4()) for _ in range(len(df))]
     else:
@@ -54,7 +49,9 @@ def load_activities():
     df = read_df(ACTIVITIES_URL)
     if not df.empty:
         df = ensure_id(df)
-        df["Recurrence"] = df["Recurrence"].apply(lambda x: eval(x) if isinstance(x, str) and x.startswith("{") else {"type": df["Schedule"] if "Schedule" in df else "daily"})
+        df["Recurrence"] = df["Recurrence"].apply(
+            lambda x: eval(x) if isinstance(x, str) and x.startswith("{") else {"type": df["Schedule"] if "Schedule" in df else "daily"}
+        )
         df["Tags"] = df.get("Tags", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
         df["Dependencies"] = df.get("Dependencies", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
     return df
@@ -105,6 +102,8 @@ def can_mark_complete(act, activities, logs):
     return True
 
 def is_overdue(act_id, logs, today):
+    if "ActivityID" not in logs.columns:
+        return False
     records = logs[(logs["ActivityID"] == act_id)]
     if not records.empty:
         last_done = records["Date"].max()
@@ -150,7 +149,10 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
             else:
                 rec_days = []
             recurrence = {"type": schedule_type, "days": rec_days} if rec_days else {"type": schedule_type}
-            dep_names = st.multiselect("Dependencies (must complete first)", list(activities["Activity"])) if not activities.empty else []
+            dep_names = st.multiselect(
+                "Dependencies (must complete first)",
+                list(activities["Activity"]) if not activities.empty else []
+            )
             submit = st.form_submit_button("Add Activity")
             if submit and name:
                 new_id = str(uuid4())
@@ -168,27 +170,42 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
                 st.success(f"Activity '{name}' added! Please refresh the page.")
 
     elif mode == "Edit" and not activities.empty:
-        edit_id = st.selectbox("Select Activity", activities["ID"], format_func=lambda id: activities[activities["ID"]==id]["Activity"].values[0])
-        act_row = activities[activities["ID"]==edit_id].iloc[0]
+        edit_id = st.selectbox(
+            "Select Activity",
+            activities["ID"],
+            format_func=lambda id: activities[activities["ID"] == id]["Activity"].values[0]
+        )
+        act_row = activities[activities["ID"] == edit_id].iloc[0]
         with st.form("edit_form"):
             name = st.text_input("Activity Name", value=act_row["Activity"])
-            desc = st.text_area("Description", value=act_row.get("Description",""))
-            tags = st.text_input("Tags (comma separated)", value=",".join(act_row.get("Tags",[]))).split(",")
-            dep_names = st.multiselect("Dependencies (must complete first)", list(activities[activities["ID"]!=edit_id]["Activity"]), default=act_row.get("Dependencies",[]))
+            desc = st.text_area("Description", value=act_row.get("Description", ""))
+            tags = st.text_input("Tags (comma separated)", value=",".join(act_row.get("Tags", []))).split(",")
+            dependency_options = list(activities[activities["ID"] != edit_id]["Activity"])
+            # Fix: Only supply current_dependencies if they're in dependency_options
+            current_dependencies = [d for d in act_row.get("Dependencies", []) if d in dependency_options]
+            dep_names = st.multiselect(
+                "Dependencies (must complete first)",
+                dependency_options,
+                default=current_dependencies
+            )
             submit = st.form_submit_button("Save Changes")
             if submit:
-                idx = activities[activities["ID"]==edit_id].index[0]
-                activities.at[idx,"Activity"] = name
-                activities.at[idx,"Description"] = desc
-                activities.at[idx,"Tags"] = [t.strip() for t in tags if t.strip()]
-                activities.at[idx,"Dependencies"] = dep_names
+                idx = activities[activities["ID"] == edit_id].index[0]
+                activities.at[idx, "Activity"] = name
+                activities.at[idx, "Description"] = desc
+                activities.at[idx, "Tags"] = [t.strip() for t in tags if t.strip()]
+                activities.at[idx, "Dependencies"] = dep_names
                 save_activities(activities)
                 st.success("Activity updated. Please refresh the page.")
 
     elif mode == "Delete" and not activities.empty:
-        del_id = st.selectbox("Select Activity", activities["ID"], format_func=lambda id: activities[activities["ID"]==id]["Activity"].values[0])
+        del_id = st.selectbox(
+            "Select Activity",
+            activities["ID"],
+            format_func=lambda id: activities[activities["ID"] == id]["Activity"].values[0]
+        )
         if st.button("Delete Activity"):
-            activities = activities[activities["ID"]!=del_id].reset_index(drop=True)
+            activities = activities[activities["ID"] != del_id].reset_index(drop=True)
             save_activities(activities)
             st.warning("Activity deleted. Please refresh the page.")
 
@@ -198,7 +215,7 @@ with st.expander("📅 Calendar View"):
     calendar_df = pd.DataFrame({"Date": calendar_days})
     for _, act in filtered_activities.iterrows():
         act_id = act["ID"]
-        if not logs.empty:
+        if not logs.empty and "Date" in logs.columns and "ActivityID" in logs.columns:
             completed_days = set(logs[logs["ActivityID"] == act_id]["Date"].dt.date)
         else:
             completed_days = set()
@@ -226,7 +243,12 @@ for _, act in filtered_activities.iterrows():
             st.markdown("**:red[Overdue!]**")
         if act.get("Dependencies"):
             st.markdown(f"Depends on: {', '.join(act['Dependencies'])}")
-        done_today = not logs[(logs["ActivityID"]==act["ID"]) & (logs["Date"]==pd.Timestamp(today))].empty
+        done_today = (
+            not logs.empty
+            and "ActivityID" in logs.columns
+            and "Date" in logs.columns
+            and not logs[(logs["ActivityID"]==act["ID"]) & (logs["Date"]==pd.Timestamp(today))].empty
+        )
         if done_today:
             st.success("Done Today")
         elif dep_met:
@@ -258,26 +280,29 @@ for _, act in filtered_activities.iterrows():
             st.warning("Dependencies not completed today.")
 
     with c3:
-        recent_log = logs[logs["ActivityID"] == act["ID"]].sort_values(by="Date", ascending=False).head(history_rows)
-        if not recent_log.empty:
-            st.write("Recent History:")
-            st.dataframe(recent_log[["Date", "Status", "Evidence Link", "Comments"]], use_container_width=True, hide_index=True)
+        if not logs.empty and "ActivityID" in logs.columns:
+            recent_log = logs[logs["ActivityID"] == act["ID"]].sort_values(by="Date", ascending=False).head(history_rows)
+            if not recent_log.empty:
+                st.write("Recent History:")
+                st.dataframe(recent_log[["Date", "Status", "Evidence Link", "Comments"]], use_container_width=True, hide_index=True)
+            else:
+                st.caption("No history for this activity.")
         else:
             st.caption("No history for this activity.")
 
 # ---- Analytics Dashboard ----
 with st.expander("📊 Analytics Dashboard"):
     st.markdown("**Completion Trends (last 30 days)**")
-    st.write("Logs shape:", logs.shape)
-    st.write("Logs columns:", logs.columns.tolist())
-    st.write(logs.head())
-    df = logs[logs["Date"] >= (datetime.now()-timedelta(days=30))]
-    if not df.empty:
-        summary = df.groupby('ActivityID').agg(Count=('Status','count')).reset_index()
-        summary['Activity'] = summary['ActivityID'].map({row['ID']:row['Activity'] for _,row in activities.iterrows()})
-        st.bar_chart(summary.set_index('Activity')['Count'])
+    if not logs.empty and "Date" in logs.columns and "ActivityID" in logs.columns:
+        df = logs[logs["Date"] >= (datetime.now()-timedelta(days=30))]
+        if not df.empty:
+            summary = df.groupby('ActivityID').agg(Count=('Status','count')).reset_index()
+            summary['Activity'] = summary['ActivityID'].map({row['ID']:row['Activity'] for _,row in activities.iterrows()})
+            st.bar_chart(summary.set_index('Activity')['Count'])
+        else:
+            st.info("No completion data yet.")
     else:
-        st.info("No completion data yet.")
+        st.info("No completion data yet or 'Date'/'ActivityID' column missing in logs.")
 
 # ---- Export/Import Data ----
 with st.expander("⬇️⬆️ Export/Import Data"):
