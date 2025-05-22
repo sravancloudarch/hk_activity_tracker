@@ -24,17 +24,36 @@ ACTIVITIES_URL = st.secrets["sheets"]["activities_url"] if "sheets" in st.secret
 LOGS_URL = st.secrets["sheets"]["logs_url"] if "sheets" in st.secrets else "your_logs_gsheet_url"
 
 # ---- Helper Functions ----
-def read_df(sheet_url, sheet_name="Sheet1"):
-    sheet = client.open_by_url(sheet_url)
-    data = sheet.worksheet(sheet_name).get_all_records()
-    return pd.DataFrame(data)
-
 def write_df(sheet_url, df, sheet_name="Sheet1"):
     sheet = client.open_by_url(sheet_url)
     ws = sheet.worksheet(sheet_name)
     ws.clear()
     if not df.empty:
+        df = df.astype(str)  # Ensure all values are strings for Google Sheets
         ws.update([df.columns.values.tolist()] + df.values.tolist())
+
+def save_logs(df):
+    df_to_save = df.copy()
+    df_to_save["Date"] = df_to_save["Date"].astype(str)
+    # Convert all columns to string before writing
+    for col in df_to_save.columns:
+        df_to_save[col] = df_to_save[col].astype(str)
+    write_df(LOGS_URL, df_to_save)
+
+def save_activities(df):
+    df_to_save = df.copy()
+    df_to_save["Recurrence"] = df_to_save["Recurrence"].astype(str)
+    df_to_save["Tags"] = df_to_save["Tags"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
+    df_to_save["Dependencies"] = df_to_save["Dependencies"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
+    # Convert all columns to string before writing
+    for col in df_to_save.columns:
+        df_to_save[col] = df_to_save[col].astype(str)
+    write_df(ACTIVITIES_URL, df_to_save)
+
+def read_df(sheet_url, sheet_name="Sheet1"):
+    sheet = client.open_by_url(sheet_url)
+    data = sheet.worksheet(sheet_name).get_all_records()
+    return pd.DataFrame(data)
 
 def ensure_id(df):
     if "ID" not in df.columns:
@@ -56,14 +75,6 @@ def load_activities():
         df["Dependencies"] = df.get("Dependencies", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
     return df
 
-def save_activities(df):
-    df_to_save = df.copy()
-    # Save Recurrence/Tags/Dependencies as strings
-    df_to_save["Recurrence"] = df_to_save["Recurrence"].astype(str)
-    df_to_save["Tags"] = df_to_save["Tags"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
-    df_to_save["Dependencies"] = df_to_save["Dependencies"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
-    write_df(ACTIVITIES_URL, df_to_save)
-
 # ---- Logs ----
 def load_logs():
     df = read_df(LOGS_URL)
@@ -71,11 +82,6 @@ def load_logs():
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
         df = df.dropna(subset=["Date"])
     return df
-
-def save_logs(df):
-    df_to_save = df.copy()
-    df_to_save["Date"] = df_to_save["Date"].astype(str)
-    write_df(LOGS_URL, df_to_save)
 
 # ---- Utilities ----
 def get_today():
