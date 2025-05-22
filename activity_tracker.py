@@ -263,6 +263,9 @@ for _, act in filtered_activities.iterrows():
 # ---- Analytics Dashboard ----
 with st.expander("📊 Analytics Dashboard"):
     st.markdown("**Completion Trends (last 30 days)**")
+    st.write("Logs shape:", logs.shape)
+    st.write("Logs columns:", logs.columns.tolist())
+    st.write(logs.head())
     df = logs[logs["Date"] >= (datetime.now()-timedelta(days=30))]
     if not df.empty:
         summary = df.groupby('ActivityID').agg(Count=('Status','count')).reset_index()
