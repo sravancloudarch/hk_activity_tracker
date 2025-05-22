@@ -1,5 +1,6 @@
+streamlit
+streamlit-oauth
 gspread
 oauth2client
 pandas
-streamlit-authenticator
-streamlit-oauth
+requests
