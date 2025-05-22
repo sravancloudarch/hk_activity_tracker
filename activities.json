@@ -2,146 +2,262 @@
   {
     "Activity": "Podium sweeping",
     "Description": "Podium surrounding sweeping and Security Main gate and Main gate waiting hall cleaning.",
-    "Schedule": "daily"
+    "Schedule": "daily",
+    "ID": "d05828bb-71c8-42c0-99e3-cf9d7c0a30fc",
+    "Recurrence": {
+      "type": "daily"
+    }
   },
   {
     "Activity": "Garbage pick up",
     "Description": "Garbage Pickup from All Flats",
-    "Schedule": "daily"
+    "Schedule": "daily",
+    "ID": "54a7d974-05a3-4c04-87e3-0df0055f6405",
+    "Recurrence": {
+      "type": "daily"
+    }
   },
   {
     "Activity": "Dusting + Dry and Wet Mopping",
     "Description": "Ground  and lift , swimming pool surrounding, floor corridor GYM, Meditation hall, indoor games, office, wash room, Guest rooms, MP hall and Mini function hall will do alternative day",
-    "Schedule": "daily"
+    "Schedule": "daily",
+    "ID": "ff29ef7a-5c53-4966-8f20-bb66da785538",
+    "Recurrence": {
+      "type": "daily"
+    }
   },
   {
     "Activity": "1st Floor Duct",
     "Description": "1st Floor Duct 1,2 and 3 Sweeping",
-    "Schedule": "montly twice"
+    "Schedule": "montly twice",
+    "ID": "5bcff135-3b40-4414-9f4b-3bdef77ecfd1",
+    "Recurrence": {
+      "type": "montly twice"
+    }
   },
   {
     "Activity": "Ramps",
     "Description": " B1 and B2 all ramps Sweeping",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "717147af-0fc3-4500-94d2-e34b9c7884a8",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Canopy  - Sheets",
     "Description": " 1,2 and 3 Blocks sweeping",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "cb3ad190-83da-4136-8a88-a6e94e74e8dc",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": " Courts water wash",
     "Description": "Basket ball Court",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "86827522-7e9a-4c14-a336-08e84cf23bd3",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Floor scrubbing with Machine",
     "Description": "A Block ",
-    "Schedule": "monthly twice"
+    "Schedule": "monthly twice",
+    "ID": "cf2c95bf-e848-431e-8e31-05c81991e257",
+    "Recurrence": {
+      "type": "monthly twice"
+    }
   },
   {
     "Activity": "Staircases",
     "Description": " Blocks cobwebs ",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "33a6c673-3a41-4b79-aa91-86dfe22451e8",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Clubhouse",
     "Description": "Glass cleaning",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "13e9c772-2bb2-4f67-89f8-78e79ad4f1ec",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Gas banks",
     "Description": "All gas banks sweeping & cobwebs",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "2b083ff6-e8fb-42d8-a9db-8bf4eaa1533d",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Terrace Sweeping",
     "Description": "All blocks TERRACE SWEEPING",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "1902b247-8f51-4ff3-8503-59ffd73e3928",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": " Fire hose box,  & Mirror Cleaning",
     "Description": "Basement-1 and 2",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "b9f06c5c-633c-488c-b96d-f66ecf46d98a",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "DG room  and Electrical Panel Room",
     "Description": "Panel rooms sweeping cobwebs 1 to 3",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "e9485f47-25a0-4e96-8cc5-29d7693d4a67",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "External wall cobwebs",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "868c517f-5059-4d18-b5a5-829218cb6856",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Lifts deep Cleaning  wall marks ",
     "Description": "1 Block ",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "23b9ec07-a556-472d-ad98-7f72d36d4e9f",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": " Lift dado Tiles wiping with water",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "a34b3e6e-e544-4f10-8996-4ac614fc1f50",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "POSTAL BOX ",
     "Description": " Postal Box Dusting ",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "a785ba23-6a17-4b2b-8694-63319f3e267c",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "WTP and STP",
     "Description": " Cobwebs Sweeping",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "622f0d54-b4c0-438e-8309-22d4d5c19931",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Stilt-1 cobwebs",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "cf859920-abc8-4929-8bb1-e95f8d31c8cf",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Cobwebs cellar",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "8f056fe1-bd0f-4ecd-b146-bda049909ae1",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Cobwebs Sub-cellar",
     "Description": "3 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "0f3e2eba-2521-4708-8c66-f04a222d7c2c",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Stilt-1 Sweeping",
     "Description": "1 Block ",
-    "Schedule": "monthly twice"
+    "Schedule": "monthly twice",
+    "ID": "2c159762-7428-4aaf-81d7-30e01fba3333",
+    "Recurrence": {
+      "type": "monthly twice"
+    }
   },
   {
     "Activity": "Basement-1 Sweeping",
     "Description": "1 Block ",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "dd921653-8f95-41e0-a3c9-9b1340af3d2d",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Basement-2 Sweeping",
     "Description": "3 Block ",
-    "Schedule": "monthly"
+    "Schedule": "monthly",
+    "ID": "cc30ff54-d6f0-435a-a7f8-31dabb9b96e7",
+    "Recurrence": {
+      "type": "monthly"
+    }
   },
   {
     "Activity": "Stilt water wash ",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "405a9edd-71b4-4b86-aecc-06a83c77de0c",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Basement-1 water wash ",
     "Description": "1 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "bc394645-ddf5-4956-8630-1501f2ee4799",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Basement-2 water wash ",
     "Description": "3 Block ",
-    "Schedule": "2 months"
+    "Schedule": "2 months",
+    "ID": "6e1443f5-ed4d-4268-af27-d46ea86f4a7c",
+    "Recurrence": {
+      "type": "2 months"
+    }
   },
   {
     "Activity": "Drain Chamber",
     "Description": "1,2 and 3 blocks",
-    "Schedule": "6 months"
+    "Schedule": "6 months",
+    "ID": "ac8fb0fe-b319-4b92-b0bf-79e08e5e07fe",
+    "Recurrence": {
+      "type": "6 months"
+    }
   }
 ]
