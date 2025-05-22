@@ -108,7 +108,7 @@ def is_overdue(act_id, logs, today):
 
 # ---- Streamlit UI ----
 st.set_page_config(page_title="🚦 Sukhii9 Maintenance Activity Tracker App", layout="wide")
-st.title("Persistent Activity Tracker (Google Sheets)")
+st.title("🚦 Sukhii9 Maintenance Activity Tracker App")
 
 activities = load_activities()
 logs = load_logs()
