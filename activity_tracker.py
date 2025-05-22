@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from streamlit_oauth import OAuth2Component
+from streamlit_oauth import OAuth2Component, StreamlitOauthError
 from datetime import datetime, timedelta, date
 from uuid import uuid4
 import requests
@@ -81,13 +81,17 @@ oauth2 = OAuth2Component(
     token_endpoint="https://oauth2.googleapis.com/token",
 )
 
-# -- Google Login Button --
-result = oauth2.authorize_button(
-    name="Continue with Google",
-    redirect_uri=REDIRECT_URI,
-    scope="openid email profile",
-    key="google",
-)
+# --- Google Login Button with error handling ---
+try:
+    result = oauth2.authorize_button(
+        name="Continue with Google",
+        redirect_uri=REDIRECT_URI,
+        scope="openid email profile",
+        key="google",
+    )
+except StreamlitOauthError:
+    st.warning("Authentication failed or session expired. Please refresh the page and try logging in again.")
+    st.stop()
 
 if result and "token" in result:
     # Get user info from Google
@@ -106,10 +110,20 @@ if result and "token" in result:
 
     role = user_record["role"]
 
-    # Top Admin: pick any society. Society Admin/User: only their own
+    # ---- Sidebar (safe: only after login!) ----
+    st.sidebar.write(f"Logged in as: {user_email} ({role.replace('_', ' ').title()})")
+
+    # --- Society selection, safely in session_state ---
     if role == "top_admin":
         allowed_societies = [s["name"] for s in societies]
-        selected_society = st.sidebar.selectbox("Select Society", allowed_societies)
+        if "selected_society" not in st.session_state or st.session_state["selected_society"] not in allowed_societies:
+            st.session_state["selected_society"] = allowed_societies[0]
+        selected_society = st.sidebar.selectbox(
+            "Select Society",
+            allowed_societies,
+            index=allowed_societies.index(st.session_state["selected_society"]),
+            key="selected_society"
+        )
     else:
         selected_society = user_record["society"]
         st.sidebar.write(f"Society: {selected_society}")
@@ -121,7 +135,6 @@ if result and "token" in result:
     if "logo_url" in society and society["logo_url"]:
         st.sidebar.image(society["logo_url"], use_container_width=True)
     st.sidebar.write(f"**Current Society:** {selected_society}")
-    st.sidebar.write(f"Logged in as: {user_email} ({role.replace('_', ' ').title()})")
 
     # ---- Activity and Log Sheet Functions (per society) ----
     def load_activities():
@@ -436,9 +449,9 @@ if result and "token" in result:
             st.header("🔑 Admin Console: Manage Users and Societies")
 
             # --- USERS TABLE ---
-            st.subheader("👥 Users Management")
             users = read_users()  # Reload to get updates
             users_df = pd.DataFrame(users)
+            st.subheader("👥 Users Management")
             st.dataframe(users_df[["email", "role", "society"]], use_container_width=True)
 
             st.markdown("### Add or Edit User")
@@ -471,9 +484,9 @@ if result and "token" in result:
                 st.rerun()
 
             # --- SOCIETIES TABLE ---
-            st.subheader("🏢 Societies Management")
             societies = read_societies()  # Reload to get updates
             societies_df = pd.DataFrame(societies)
+            st.subheader("🏢 Societies Management")
             st.dataframe(societies_df[["name", "activities_url", "logs_url", "logo_url"]], use_container_width=True)
 
             st.markdown("### Add or Edit Society")
