@@ -4,6 +4,29 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, timedelta, date
 from uuid import uuid4
+import json
+import os
+
+# ---- Multi-Tenant: Load Societies Config ----
+if os.path.exists("societies.json"):
+    with open("societies.json") as f:
+        societies = json.load(f)
+else:
+    societies = []
+
+if not societies:
+    st.error("No societies configured. Please set up societies.json.")
+    st.stop()
+
+society_names = [s["name"] for s in societies]
+selected_society = st.sidebar.selectbox("Select your Society", society_names)
+society = next(s for s in societies if s["name"] == selected_society)
+ACTIVITIES_URL = society["activities_url"]
+LOGS_URL = society["logs_url"]
+
+if "logo_url" in society and society["logo_url"]:
+    st.sidebar.image(society["logo_url"], use_column_width=True)
+st.sidebar.write(f"**Current Society:** {selected_society}")
 
 # ---- Google Sheets API Setup ----
 def get_gsheet_client():
@@ -18,10 +41,6 @@ def get_gsheet_client():
     return gspread.authorize(creds)
 
 client = get_gsheet_client()
-
-# --- Sheet URLs or Names ---
-ACTIVITIES_URL = st.secrets["sheets"]["activities_url"] if "sheets" in st.secrets else "your_activities_gsheet_url"
-LOGS_URL = st.secrets["sheets"]["logs_url"] if "sheets" in st.secrets else "your_logs_gsheet_url"
 
 # ---- Helper Functions ----
 def write_df(sheet_url, df, sheet_name="Sheet1"):
@@ -114,8 +133,8 @@ def is_overdue(act_id, logs, today):
     return True
 
 # ---- Streamlit UI ----
-st.set_page_config(page_title="🚦 Sukhii9 Maintenance Activity Tracker App", layout="wide")
-st.title("🚦 Sukhii9 Maintenance Activity Tracker App")
+st.set_page_config(page_title="🚦 Multi-Tenant Maintenance Activity Tracker", layout="wide")
+st.title(f"🚦 Maintenance Activity Tracker App for {selected_society}")
 
 activities = load_activities()
 logs = load_logs()
