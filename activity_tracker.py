@@ -35,7 +35,6 @@ def write_df(sheet_url, df, sheet_name="Sheet1"):
 def save_logs(df):
     df_to_save = df.copy()
     df_to_save["Date"] = df_to_save["Date"].astype(str)
-    # Convert all columns to string before writing
     for col in df_to_save.columns:
         df_to_save[col] = df_to_save[col].astype(str)
     write_df(LOGS_URL, df_to_save)
@@ -45,7 +44,6 @@ def save_activities(df):
     df_to_save["Recurrence"] = df_to_save["Recurrence"].astype(str)
     df_to_save["Tags"] = df_to_save["Tags"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
     df_to_save["Dependencies"] = df_to_save["Dependencies"].apply(lambda l: ",".join(l) if isinstance(l, list) else l)
-    # Convert all columns to string before writing
     for col in df_to_save.columns:
         df_to_save[col] = df_to_save[col].astype(str)
     write_df(ACTIVITIES_URL, df_to_save)
@@ -59,7 +57,6 @@ def ensure_id(df):
     if "ID" not in df.columns:
         df["ID"] = [str(uuid4()) for _ in range(len(df))]
     else:
-        # Fill any missing or blank IDs, row by row
         df["ID"] = df["ID"].apply(lambda x: str(uuid4()) if pd.isna(x) or str(x).strip() == "" else str(x))
     return df
 
@@ -161,19 +158,23 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
             )
             submit = st.form_submit_button("Add Activity")
             if submit and name:
-                new_id = str(uuid4())
-                new_row = pd.DataFrame([{
-                    "Activity": name,
-                    "Description": desc,
-                    "Schedule": schedule_type,
-                    "Recurrence": recurrence,
-                    "Tags": [t.strip() for t in tags if t.strip()],
-                    "Dependencies": dep_names,
-                    "ID": new_id
-                }])
-                activities = pd.concat([activities, new_row], ignore_index=True)
-                save_activities(activities)
-                st.success(f"Activity '{name}' added! Please refresh the page.")
+                try:
+                    new_id = str(uuid4())
+                    new_row = pd.DataFrame([{
+                        "Activity": name,
+                        "Description": desc,
+                        "Schedule": schedule_type,
+                        "Recurrence": recurrence,
+                        "Tags": [t.strip() for t in tags if t.strip()],
+                        "Dependencies": dep_names,
+                        "ID": new_id
+                    }])
+                    activities = pd.concat([activities, new_row], ignore_index=True)
+                    save_activities(activities)
+                    st.success(f"Activity '{name}' added! Please refresh the page.")
+                    st.experimental_rerun()
+                except Exception as e:
+                    st.error(f"Error adding activity: {e}")
 
     elif mode == "Edit" and not activities.empty:
         edit_id = st.selectbox(
@@ -187,7 +188,6 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
             desc = st.text_area("Description", value=act_row.get("Description", ""))
             tags = st.text_input("Tags (comma separated)", value=",".join(act_row.get("Tags", []))).split(",")
             dependency_options = list(activities[activities["ID"] != edit_id]["Activity"])
-            # Fix: Only supply current_dependencies if they're in dependency_options
             current_dependencies = [d for d in act_row.get("Dependencies", []) if d in dependency_options]
             dep_names = st.multiselect(
                 "Dependencies (must complete first)",
@@ -196,13 +196,17 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
             )
             submit = st.form_submit_button("Save Changes")
             if submit:
-                idx = activities[activities["ID"] == edit_id].index[0]
-                activities.at[idx, "Activity"] = name
-                activities.at[idx, "Description"] = desc
-                activities.at[idx, "Tags"] = [t.strip() for t in tags if t.strip()]
-                activities.at[idx, "Dependencies"] = dep_names
-                save_activities(activities)
-                st.success("Activity updated. Please refresh the page.")
+                try:
+                    idx = activities[activities["ID"] == edit_id].index[0]
+                    activities.at[idx, "Activity"] = name
+                    activities.at[idx, "Description"] = desc
+                    activities.at[idx, "Tags"] = [t.strip() for t in tags if t.strip()]
+                    activities.at[idx, "Dependencies"] = dep_names
+                    save_activities(activities)
+                    st.success("Activity updated. Please refresh the page.")
+                    st.experimental_rerun()
+                except Exception as e:
+                    st.error(f"Error updating activity: {e}")
 
     elif mode == "Delete" and not activities.empty:
         del_id = st.selectbox(
@@ -211,9 +215,13 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
             format_func=lambda id: activities[activities["ID"] == id]["Activity"].values[0]
         )
         if st.button("Delete Activity"):
-            activities = activities[activities["ID"] != del_id].reset_index(drop=True)
-            save_activities(activities)
-            st.warning("Activity deleted. Please refresh the page.")
+            try:
+                activities = activities[activities["ID"] != del_id].reset_index(drop=True)
+                save_activities(activities)
+                st.warning("Activity deleted. Please refresh the page.")
+                st.experimental_rerun()
+            except Exception as e:
+                st.error(f"Error deleting activity: {e}")
 
 # ---- Calendar View ----
 with st.expander("📅 Calendar View"):
@@ -234,7 +242,6 @@ for _, act in filtered_activities.iterrows():
     overdue = is_overdue(act["ID"], logs, today)
     if show_overdue and not overdue:
         continue
-    # Should this be shown today?
     if not recurrence_matches_today(act["Recurrence"], today) and not overdue:
         continue
     dep_met = can_mark_complete(act, activities, logs)
@@ -263,25 +270,28 @@ for _, act in filtered_activities.iterrows():
                 evidence = st.text_input("Evidence Link (URL or photo)")
                 submit = st.form_submit_button("Mark Complete")
                 if submit:
-                    missed_dates = []
-                    if overdue:
-                        past = logs[logs["ActivityID"]==act["ID"]]
-                        if not past.empty:
-                            last_completed = past["Date"].max().date()
-                            missed_dates = [last_completed + timedelta(days=i) for i in range(1, (today - last_completed).days)]
-                    new_entries = []
-                    for d in missed_dates+[today]:
-                        new_entries.append({
-                            'Date': d, 'ActivityID': act['ID'], 'Status': 'Completed',
-                            'Evidence Link': evidence, 'Comments': comment,
-                            'User': 'NA', 'Timestamp': datetime.now(), 'Overdue': d != today
-                        })
-                    logs = pd.concat([logs, pd.DataFrame(new_entries)], ignore_index=True)
-                    logs["Date"] = pd.to_datetime(logs["Date"], errors="coerce")
-                    logs = logs.dropna(subset=["Date"])
-                    save_logs(logs)
-                    st.success("Marked complete with missed roll-over.")
-                    st.experimental_rerun()
+                    try:
+                        missed_dates = []
+                        if overdue:
+                            past = logs[logs["ActivityID"]==act["ID"]]
+                            if not past.empty:
+                                last_completed = past["Date"].max().date()
+                                missed_dates = [last_completed + timedelta(days=i) for i in range(1, (today - last_completed).days)]
+                        new_entries = []
+                        for d in missed_dates+[today]:
+                            new_entries.append({
+                                'Date': d, 'ActivityID': act['ID'], 'Status': 'Completed',
+                                'Evidence Link': evidence, 'Comments': comment,
+                                'User': 'NA', 'Timestamp': datetime.now(), 'Overdue': d != today
+                            })
+                        logs = pd.concat([logs, pd.DataFrame(new_entries)], ignore_index=True)
+                        logs["Date"] = pd.to_datetime(logs["Date"], errors="coerce")
+                        logs = logs.dropna(subset=["Date"])
+                        save_logs(logs)
+                        st.success("Marked complete with missed roll-over.")
+                        st.experimental_rerun()
+                    except Exception as e:
+                        st.error(f"Error logging activity completion: {e}")
         else:
             st.warning("Dependencies not completed today.")
 
