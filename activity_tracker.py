@@ -5,17 +5,65 @@ from oauth2client.service_account import ServiceAccountCredentials
 from streamlit_oauth import OAuth2Component
 from datetime import datetime, timedelta, date
 from uuid import uuid4
-import json
-import os
 import requests
 
 st.set_page_config(page_title="🚦 Multi-Tenant Maintenance Activity Tracker", layout="wide")
 
-# ---- Load Users and Societies ----
-with open("users.json") as f:
-    users = json.load(f)
-with open("societies.json") as f:
-    societies = json.load(f)
+# ---- Google Sheets API Setup ----
+def get_gsheet_client():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    if "google_credentials" in st.secrets:
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_credentials"], scope)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+    return gspread.authorize(creds)
+
+client = get_gsheet_client()
+
+def read_df(sheet_url, sheet_name="Sheet1"):
+    sheet = client.open_by_url(sheet_url)
+    data = sheet.worksheet(sheet_name).get_all_records()
+    return pd.DataFrame(data)
+
+def write_df(sheet_url, df, sheet_name="Sheet1"):
+    sheet = client.open_by_url(sheet_url)
+    ws = sheet.worksheet(sheet_name)
+    ws.clear()
+    if not df.empty:
+        df = df.astype(str)
+        ws.update([df.columns.values.tolist()] + df.values.tolist())
+
+# ---- Helper: Load/save users and societies from Sheets ----
+USERS_URL = st.secrets["sheets"]["users_url"]
+SOCIETIES_URL = st.secrets["sheets"]["societies_url"]
+
+def read_users():
+    df = read_df(USERS_URL)
+    if not df.empty:
+        df = df.drop_duplicates(subset=["email"])
+        return df.to_dict(orient="records")
+    return []
+
+def save_users(users):
+    df = pd.DataFrame(users)
+    write_df(USERS_URL, df)
+
+def read_societies():
+    df = read_df(SOCIETIES_URL)
+    if not df.empty:
+        df = df.drop_duplicates(subset=["name"])
+        return df.to_dict(orient="records")
+    return []
+
+def save_societies(societies):
+    df = pd.DataFrame(societies)
+    write_df(SOCIETIES_URL, df)
+
+users = read_users()
+societies = read_societies()
 
 # ---- Google OAuth2 Setup ----
 CLIENT_ID = st.secrets["google"].get("client_id", "")
@@ -75,35 +123,20 @@ if result and "token" in result:
     st.sidebar.write(f"**Current Society:** {selected_society}")
     st.sidebar.write(f"Logged in as: {user_email} ({role.replace('_', ' ').title()})")
 
-    # ---- Google Sheets API Setup ----
-    def get_gsheet_client():
-        scope = [
-            "https://spreadsheets.google.com/feeds",
-            "https://www.googleapis.com/auth/drive"
-        ]
-        if "google_credentials" in st.secrets:
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_credentials"], scope)
-        else:
-            creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
-        return gspread.authorize(creds)
-
-    client = get_gsheet_client()
-
-    # ---- Helper Functions ----
-    def write_df(sheet_url, df, sheet_name="Sheet1"):
-        sheet = client.open_by_url(sheet_url)
-        ws = sheet.worksheet(sheet_name)
-        ws.clear()
+    # ---- Activity and Log Sheet Functions (per society) ----
+    def load_activities():
+        df = read_df(ACTIVITIES_URL)
         if not df.empty:
-            df = df.astype(str)
-            ws.update([df.columns.values.tolist()] + df.values.tolist())
-
-    def save_logs(df):
-        df_to_save = df.copy()
-        df_to_save["Date"] = df_to_save["Date"].astype(str)
-        for col in df_to_save.columns:
-            df_to_save[col] = df_to_save[col].astype(str)
-        write_df(LOGS_URL, df_to_save)
+            if "ID" not in df.columns:
+                df["ID"] = [str(uuid4()) for _ in range(len(df))]
+            else:
+                df["ID"] = df["ID"].apply(lambda x: str(uuid4()) if pd.isna(x) or str(x).strip() == "" else str(x))
+            df["Recurrence"] = df["Recurrence"].apply(
+                lambda x: eval(x) if isinstance(x, str) and x.startswith("{") else {"type": df["Schedule"] if "Schedule" in df else "daily"}
+            )
+            df["Tags"] = df.get("Tags", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
+            df["Dependencies"] = df.get("Dependencies", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
+        return df
 
     def save_activities(df):
         df_to_save = df.copy()
@@ -114,37 +147,19 @@ if result and "token" in result:
             df_to_save[col] = df_to_save[col].astype(str)
         write_df(ACTIVITIES_URL, df_to_save)
 
-    def read_df(sheet_url, sheet_name="Sheet1"):
-        sheet = client.open_by_url(sheet_url)
-        data = sheet.worksheet(sheet_name).get_all_records()
-        return pd.DataFrame(data)
-
-    def ensure_id(df):
-        if "ID" not in df.columns:
-            df["ID"] = [str(uuid4()) for _ in range(len(df))]
-        else:
-            df["ID"] = df["ID"].apply(lambda x: str(uuid4()) if pd.isna(x) or str(x).strip() == "" else str(x))
-        return df
-
-    # ---- Activities ----
-    def load_activities():
-        df = read_df(ACTIVITIES_URL)
-        if not df.empty:
-            df = ensure_id(df)
-            df["Recurrence"] = df["Recurrence"].apply(
-                lambda x: eval(x) if isinstance(x, str) and x.startswith("{") else {"type": df["Schedule"] if "Schedule" in df else "daily"}
-            )
-            df["Tags"] = df.get("Tags", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
-            df["Dependencies"] = df.get("Dependencies", "").apply(lambda x: x.split(",") if isinstance(x, str) else [])
-        return df
-
-    # ---- Logs ----
     def load_logs():
         df = read_df(LOGS_URL)
         if not df.empty and "Date" in df:
             df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
             df = df.dropna(subset=["Date"])
         return df
+
+    def save_logs(df):
+        df_to_save = df.copy()
+        df_to_save["Date"] = df_to_save["Date"].astype(str)
+        for col in df_to_save.columns:
+            df_to_save[col] = df_to_save[col].astype(str)
+        write_df(LOGS_URL, df_to_save)
 
     # ---- Utilities ----
     def get_today():
@@ -415,13 +430,14 @@ if result and "token" in result:
             else:
                 st.info("No dependencies set.")
 
-    # --- ADMIN TAB ---
+    # --- ADMIN TAB (All uses Google Sheets for persistence!) ---
     if role == "top_admin":
         with admin_tab:
             st.header("🔑 Admin Console: Manage Users and Societies")
 
             # --- USERS TABLE ---
             st.subheader("👥 Users Management")
+            users = read_users()  # Reload to get updates
             users_df = pd.DataFrame(users)
             st.dataframe(users_df[["email", "role", "society"]], use_container_width=True)
 
@@ -433,6 +449,7 @@ if result and "token" in result:
                 new_society = st.selectbox("Society", society_options)
                 submit_user = st.form_submit_button("Add / Update User")
                 if submit_user and new_email:
+                    users = read_users()  # Always reload
                     updated = False
                     for u in users:
                         if u["email"].lower() == new_email.lower():
@@ -441,8 +458,7 @@ if result and "token" in result:
                             updated = True
                     if not updated:
                         users.append({"email": new_email.lower(), "role": new_role, "society": new_society})
-                    with open("users.json", "w") as f:
-                        json.dump(users, f, indent=2)
+                    save_users(users)
                     st.success(f"User '{new_email}' has been added/updated. Please refresh the app.")
                     st.rerun()
 
@@ -450,13 +466,13 @@ if result and "token" in result:
             user_to_delete = st.selectbox("Select User to Delete", [u["email"] for u in users if u["email"].lower() != user_email])
             if st.button("Delete User"):
                 users = [u for u in users if u["email"].lower() != user_to_delete.lower()]
-                with open("users.json", "w") as f:
-                    json.dump(users, f, indent=2)
+                save_users(users)
                 st.warning(f"User '{user_to_delete}' deleted. Please refresh the app.")
                 st.rerun()
 
             # --- SOCIETIES TABLE ---
             st.subheader("🏢 Societies Management")
+            societies = read_societies()  # Reload to get updates
             societies_df = pd.DataFrame(societies)
             st.dataframe(societies_df[["name", "activities_url", "logs_url", "logo_url"]], use_container_width=True)
 
@@ -468,6 +484,7 @@ if result and "token" in result:
                 logo_url = st.text_input("Logo URL (optional)", "")
                 submit_society = st.form_submit_button("Add / Update Society")
                 if submit_society and soc_name and act_url and log_url:
+                    societies = read_societies()
                     updated = False
                     for s in societies:
                         if s["name"].lower() == soc_name.lower():
@@ -477,8 +494,7 @@ if result and "token" in result:
                             updated = True
                     if not updated:
                         societies.append({"name": soc_name, "activities_url": act_url, "logs_url": log_url, "logo_url": logo_url})
-                    with open("societies.json", "w") as f:
-                        json.dump(societies, f, indent=2)
+                    save_societies(societies)
                     st.success(f"Society '{soc_name}' added/updated. Please refresh the app.")
                     st.rerun()
 
@@ -486,8 +502,7 @@ if result and "token" in result:
             soc_to_delete = st.selectbox("Select Society to Delete", [s["name"] for s in societies])
             if st.button("Delete Society"):
                 societies = [s for s in societies if s["name"].lower() != soc_to_delete.lower()]
-                with open("societies.json", "w") as f:
-                    json.dump(societies, f, indent=2)
+                save_societies(societies)
                 st.warning(f"Society '{soc_to_delete}' deleted. Please refresh the app.")
                 st.rerun()
 
