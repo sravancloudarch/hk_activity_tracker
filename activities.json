@@ -1,0 +1,147 @@
+[
+  {
+    "Activity": "Podium sweeping",
+    "Description": "Podium surrounding sweeping and Security Main gate and Main gate waiting hall cleaning.",
+    "Schedule": "daily"
+  },
+  {
+    "Activity": "Garbage pick up",
+    "Description": "Garbage Pickup from All Flats",
+    "Schedule": "daily"
+  },
+  {
+    "Activity": "Dusting + Dry and Wet Mopping",
+    "Description": "Ground  and lift , swimming pool surrounding, floor corridor GYM, Meditation hall, indoor games, office, wash room, Guest rooms, MP hall and Mini function hall will do alternative day",
+    "Schedule": "daily"
+  },
+  {
+    "Activity": "1st Floor Duct",
+    "Description": "1st Floor Duct 1,2 and 3 Sweeping",
+    "Schedule": "montly twice"
+  },
+  {
+    "Activity": "Ramps",
+    "Description": " B1 and B2 all ramps Sweeping",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Canopy  - Sheets",
+    "Description": " 1,2 and 3 Blocks sweeping",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": " Courts water wash",
+    "Description": "Basket ball Court",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Floor scrubbing with Machine",
+    "Description": "A Block ",
+    "Schedule": "monthly twice"
+  },
+  {
+    "Activity": "Staircases",
+    "Description": " Blocks cobwebs ",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Clubhouse",
+    "Description": "Glass cleaning",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Gas banks",
+    "Description": "All gas banks sweeping & cobwebs",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Terrace Sweeping",
+    "Description": "All blocks TERRACE SWEEPING",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": " Fire hose box,  & Mirror Cleaning",
+    "Description": "Basement-1 and 2",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "DG room  and Electrical Panel Room",
+    "Description": "Panel rooms sweeping cobwebs 1 to 3",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "External wall cobwebs",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Lifts deep Cleaning  wall marks ",
+    "Description": "1 Block ",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": " Lift dado Tiles wiping with water",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "POSTAL BOX ",
+    "Description": " Postal Box Dusting ",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "WTP and STP",
+    "Description": " Cobwebs Sweeping",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Stilt-1 cobwebs",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Cobwebs cellar",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Cobwebs Sub-cellar",
+    "Description": "3 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Stilt-1 Sweeping",
+    "Description": "1 Block ",
+    "Schedule": "monthly twice"
+  },
+  {
+    "Activity": "Basement-1 Sweeping",
+    "Description": "1 Block ",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Basement-2 Sweeping",
+    "Description": "3 Block ",
+    "Schedule": "monthly"
+  },
+  {
+    "Activity": "Stilt water wash ",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Basement-1 water wash ",
+    "Description": "1 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Basement-2 water wash ",
+    "Description": "3 Block ",
+    "Schedule": "2 months"
+  },
+  {
+    "Activity": "Drain Chamber",
+    "Description": "1,2 and 3 blocks",
+    "Schedule": "6 months"
+  }
+]
