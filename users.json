@@ -1,0 +1,7 @@
+[
+  {"email": "sravan03ie29@gmail.com", "role": "top_admin", "society": "all"},
+  {"email": "sravancloudarch@gmail.com", "role": "society_admin", "society": "Sukhii9"},
+  {"email": "bob@sukhii9.com", "role": "user", "society": "Sukhii9"},
+  {"email": "sravancloudarch@gmail.com", "role": "society_admin", "society": "Palm Grove"},
+  {"email": "dave@palmgrove.com", "role": "user", "society": "Palm Grove"}
+]
