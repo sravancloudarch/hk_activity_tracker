@@ -172,7 +172,7 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
                     activities = pd.concat([activities, new_row], ignore_index=True)
                     save_activities(activities)
                     st.success(f"Activity '{name}' added! Please refresh the page.")
-                    st.experimental_rerun()
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Error adding activity: {e}")
 
@@ -204,7 +204,7 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
                     activities.at[idx, "Dependencies"] = dep_names
                     save_activities(activities)
                     st.success("Activity updated. Please refresh the page.")
-                    st.experimental_rerun()
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Error updating activity: {e}")
 
@@ -219,7 +219,7 @@ with st.expander("➕ Add / ✏️ Edit / 🗑️ Delete Activities", expanded=l
                 activities = activities[activities["ID"] != del_id].reset_index(drop=True)
                 save_activities(activities)
                 st.warning("Activity deleted. Please refresh the page.")
-                st.experimental_rerun()
+                st.rerun()
             except Exception as e:
                 st.error(f"Error deleting activity: {e}")
 
@@ -289,7 +289,7 @@ for _, act in filtered_activities.iterrows():
                         logs = logs.dropna(subset=["Date"])
                         save_logs(logs)
                         st.success("Marked complete with missed roll-over.")
-                        st.experimental_rerun()
+                        st.rerun()
                     except Exception as e:
                         st.error(f"Error logging activity completion: {e}")
         else:
