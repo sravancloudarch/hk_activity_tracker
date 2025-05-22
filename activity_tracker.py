@@ -95,7 +95,7 @@ if "user_auth" not in st.session_state:
         st.stop()
     if result and "token" in result:
         st.session_state["user_auth"] = result
-        st.experimental_rerun()  # rerun to avoid duplicate API call for userinfo
+        st.rerun()  # <--- UPDATED: use st.rerun() for new Streamlit versions
     else:
         st.stop()
 else:
