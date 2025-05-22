@@ -1,9 +1,9 @@
+from uuid import uuid4
 import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, timedelta, date
-from uuid import uuid4
 
 # ---- Google Sheets API Setup ----
 def get_gsheet_client():
@@ -37,11 +37,16 @@ def write_df(sheet_url, df, sheet_name="Sheet1"):
         ws.update([df.columns.values.tolist()] + df.values.tolist())
 
 def ensure_id(df):
+    """
+    Ensures every row in df has a non-empty, non-null unique ID in the 'ID' column.
+    - If 'ID' column is missing, adds one with all new UUIDs.
+    - If 'ID' exists, fills in blanks/missing values with a UUID.
+    """
     if "ID" not in df.columns:
         df["ID"] = [str(uuid4()) for _ in range(len(df))]
     else:
-        df["ID"] = df["ID"].replace("", pd.NA)
-        df["ID"].fillna(value=[str(uuid4()) for _ in range(len(df))], inplace=True)
+        # Fill any missing or blank IDs, row by row
+        df["ID"] = df["ID"].apply(lambda x: str(uuid4()) if pd.isna(x) or str(x).strip() == "" else str(x))
     return df
 
 # ---- Activities ----
