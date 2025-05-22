@@ -7,6 +7,9 @@ from uuid import uuid4
 import json
 import os
 
+# --- MUST BE FIRST Streamlit Command! ---
+st.set_page_config(page_title="🚦 Multi-Tenant Maintenance Activity Tracker", layout="wide")
+
 # ---- Multi-Tenant: Load Societies Config ----
 if os.path.exists("societies.json"):
     with open("societies.json") as f:
@@ -133,8 +136,8 @@ def is_overdue(act_id, logs, today):
         return last_done.date() < today
     return True
 
-# ---- Streamlit UI ----
-st.set_page_config(page_title="🚦 Multi-Tenant Maintenance Activity Tracker", layout="wide")
+# ---- UI Starts (after set_page_config!) ----
+
 st.title(f"🚦 Maintenance Activity Tracker App for {selected_society}")
 
 activities = load_activities()
