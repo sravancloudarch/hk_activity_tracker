@@ -25,7 +25,7 @@ ACTIVITIES_URL = society["activities_url"]
 LOGS_URL = society["logs_url"]
 
 if "logo_url" in society and society["logo_url"]:
-    st.sidebar.image(society["logo_url"], use_column_width=True)
+    st.sidebar.image(society["logo_url"], use_container_width=True)
 st.sidebar.write(f"**Current Society:** {selected_society}")
 
 # ---- Google Sheets API Setup ----
@@ -37,6 +37,7 @@ def get_gsheet_client():
     if "google_credentials" in st.secrets:
         creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_credentials"], scope)
     else:
+        # Local dev only:
         creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
     return gspread.authorize(creds)
 
