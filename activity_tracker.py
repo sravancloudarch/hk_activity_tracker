@@ -18,16 +18,19 @@ with open("societies.json") as f:
     societies = json.load(f)
 
 # ---- Google OAuth2 Setup ----
-CLIENT_ID = st.secrets["google"]["client_id"]
-CLIENT_SECRET = st.secrets["google"]["client_secret"]
-REDIRECT_URI = st.secrets["google"]["redirect_uri"]
+CLIENT_ID = st.secrets["google"].get("client_id", "")
+CLIENT_SECRET = st.secrets["google"].get("client_secret", "")
+REDIRECT_URI = st.secrets["google"].get("redirect_uri", "")
+
+if not CLIENT_ID or not CLIENT_SECRET or not REDIRECT_URI:
+    st.error("Missing Google OAuth credentials! Check your Streamlit secrets configuration.")
+    st.stop()
 
 oauth2 = OAuth2Component(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
     authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
     token_endpoint="https://oauth2.googleapis.com/token",
-    revoke_endpoint="https://oauth2.googleapis.com/revoke",
 )
 
 # -- Google Login Button --
